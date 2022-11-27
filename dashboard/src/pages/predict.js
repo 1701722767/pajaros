@@ -1,4 +1,4 @@
-import { Uploader, Loader, Form, Button } from "rsuite";
+import { Uploader, Loader, Form, Button,Message,useToaster } from "rsuite";
 import {URLContext} from '../contexts/url'
 
 import React from "react";
@@ -19,9 +19,6 @@ async function postData(url = "", formData = null) {
     mode: "cors",
     cache: "no-cache",
     credentials: "same-origin",
-    headers: {
-      "Content-Type": "application/form-data",
-    },
     redirect: "follow",
     referrerPolicy: "no-referrer",
     body: formData,
@@ -37,8 +34,27 @@ const Predict = () => {
   const [response, setResponse] = React.useState({});
   const [error, setError] = React.useState("");
   const { url, setUrl } = React.useContext(URLContext);
+  const toaster = useToaster();
 
   function doRequest(id, file) {
+    if(!id){
+      toaster.push(
+        <Message showIcon type="error" closable>
+          Debe ingresar un id para la imagen
+        </Message>
+      ,{value: 'topStart'});
+      return
+    }
+
+    if(!file){
+      toaster.push(
+        <Message showIcon type="error" closable>
+          Debe ingresar una imagen
+        </Message>
+      ,{value: 'topStart'});
+      return
+    }
+
     let formData = new FormData();
     formData.append("imagen", file);
 
@@ -47,9 +63,11 @@ const Predict = () => {
     )
       .then((data) => {
         setResponse(data);
+        setError("")
       })
       .catch((e) => {
-        setError(e);
+        setError(e.message);
+        setResponse({})
       });
   }
 
