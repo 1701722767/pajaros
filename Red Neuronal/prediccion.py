@@ -8,9 +8,9 @@ class prediccion():
     Carga el modelo de la red neuronal de la ruta especificada
     """
     def __init__(self):
-        self.rutaModelo="models/modeloReconocimientoNumeros.keras"
+        self.rutaModelo="models/modeloReconocimientoNumeros2.keras"
         self.model=load_model(self.rutaModelo)
-        self.width=28
+        self.width=21
         self.heigth=28
 
     def predecir(self,imagen):
@@ -31,16 +31,4 @@ class prediccion():
         return claseMayorValor[0]
 
 
-categorias=["0","1","2","3","4","5","6","7","8","9"]
-reconocimiento=prediccion()
-imagenPrueba=cv2.imread("test/1/1_19.jpg",0)
-indiceCategoria=reconocimiento.predecir(imagenPrueba)
-print("La imamgen cargada es ",categorias[indiceCategoria])
 
-
-if imagenPrueba is None:
-  print("error al cargar la imagen")
-else:
-  plt.imshow(cv2.cvtColor(imagenPrueba, cv2.COLOR_BGR2RGB))
-  plt.axis("off")
-  plt.show()

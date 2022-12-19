@@ -17,33 +17,47 @@ def cargarDatos(fase,numeroCategorias,limite):
     imagenesCargadas=[]
     etiquetas=[]
     valorEsperado=[]
-    for categoria in range(0,numeroCategorias):
+    i=0
+    for categoria in numeroCategorias:
+        print(categoria)
         for idImagen in range(0,limite):
-            ruta=fase+str(categoria)+"/"+str(categoria)+"_"+str(idImagen)+".jpg"
-            print(ruta)
+            salida=""
+            if idImagen<10:
+                salida="000"+str(idImagen)
+            elif idImagen<100:
+                salida="00"+str(idImagen)
+            elif idImagen<1000:
+                salida="0"+str(idImagen)
+            else:
+                salida=str(idImagen)
+            ruta=fase+str(categoria)+"/"+str(categoria)+"_"+salida+".jpg"
             imagen=cv2.imread(ruta,0)
-            imagen=imagen.flatten()
-            imagen=imagen/255
-            imagenesCargadas.append(imagen)
-            etiquetas.append(categoria)
-            probabilidades=np.zeros(numeroCategorias)
-            probabilidades[categoria]=1
-            valorEsperado.append(probabilidades)
+            if(imagen is not None):
+                print(ruta)
+                imagen=imagen.flatten()
+                imagen=imagen/255
+                imagenesCargadas.append(imagen)
+                etiquetas.append(categoria)
+                probabilidades=np.zeros(len(numeroCategorias))
+                probabilidades[i]=1
+                valorEsperado.append(probabilidades)
+        i=i+1
     imagenesEntrenamiento=np.array(imagenesCargadas)
     etiquetasEntrenamiento=np.array(etiquetas)
     valoresEsperados=np.array(valorEsperado)
     return imagenesEntrenamiento,etiquetasEntrenamiento,valoresEsperados
 
-img_size=28
+img_size=21
+img_size_2=28
 #Numero de neuronas de la cnn
-img_size_flat=img_size*img_size
+img_size_flat=img_size*img_size_2
 #Parametrizar la forma de imagenes
 num_chanels=1
 #RGB, HSV -> num_chanels=3
-img_shape=(img_size,img_size,num_chanels)
-num_clases=10
-limiteImagenesPrueba=60
-imagenes,etiquetas,probabilidades=cargarDatos("dataset/",num_clases,limiteImagenesPrueba)
+img_shape=(img_size,img_size_2,num_chanels)
+num_clases=['americano','basket','beisball','boxeo','ciclismo','f1','futbol','golf','natacion','tenis']
+limiteImagenesPrueba=10000
+imagenes,etiquetas,probabilidades=cargarDatos("sportimages/",num_clases,limiteImagenesPrueba)
 
 model=Sequential()
 #Capa entrada
@@ -61,11 +75,11 @@ model.add(MaxPooling2D(pool_size=2,strides=2))
 #Aplanar imagen
 model.add(Flatten())
 #Capa densa
-model.add(Dense(128,activation='relu'))
+model.add(Dense(128,activation='linear'))
 
 
 #Capa salida
-model.add(Dense(num_clases,activation='softmax'))
+model.add(Dense(len(num_clases),activation='softmax'))
 
 optimizador=Adam(lr=1e-3)
 model.compile(optimizer='Adam',
@@ -73,13 +87,13 @@ model.compile(optimizer='Adam',
               metrics=['accuracy']
 )
 
-model.fit(x=imagenes,y=probabilidades,epochs=10,batch_size=100)
+model.fit(x=imagenes,y=probabilidades,epochs=6,batch_size=64)
 
-limiteImagenesPrueba=20
-imagenesPrueba,etiquetasPrueba,probabilidadesPrueba=cargarDatos('test/',num_clases,limiteImagenesPrueba)
+limiteImagenesPrueba=3000
+imagenesPrueba,etiquetasPrueba,probabilidadesPrueba=cargarDatos('sportimages/',num_clases,limiteImagenesPrueba)
 resultados=model.evaluate(x=imagenesPrueba,y=probabilidadesPrueba)
 print("{0}: {1:.2%}".format(model.metrics_names[1], resultados[1]))
 #Carpeta y nombre del archivo como se almacenará el modelo
-nombreArchivo='models/modeloReconocimientoNumeros.keras'
+nombreArchivo='models/modeloReconocimientoNumeros2.keras'
 model.save(nombreArchivo)
 model.summary()
