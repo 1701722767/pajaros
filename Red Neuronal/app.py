@@ -10,6 +10,7 @@ from requests_toolbelt.multipart import decoder
 import io, base64
 from PIL import Image
 import os
+from urllib import parse
 
 
 class Server(BaseHTTPRequestHandler):
@@ -30,21 +31,26 @@ class Server(BaseHTTPRequestHandler):
     # POST echoes the message adding a JSON field
     def do_POST(self):
         ctype, pdict = cgi.parse_header(self.headers['content-type'])
+        params = parse.parse_qs( parse.urlparse( self.path ).query )
+        
+
         pdict['boundary'] = bytes(pdict['boundary'], "utf-8")
         if ctype == 'multipart/form-data':
             fields = cgi.parse_multipart(self.rfile, pdict)
             imgPrev=fields['imagen'][0]
+            print(fields)
             z = imgPrev[imgPrev.find('/9'):]
             img = Image.open(io.BytesIO(base64.b64decode(z))).save('cache.jpg')
             imagenPrueba=cv2.imread("cache.jpg",0)
             os.remove("cache.jpg")
             categorias=['americano','basket','beisball','boxeo','ciclismo','f1','futbol','golf','natacion','tenis']
             reconocimiento=prediccion()
-            indiceCategoria=reconocimiento.predecir(imagenPrueba)
+            indiceCategoria,prediccione=reconocimiento.predecir(imagenPrueba)
             print("La imamgen cargada es ",categorias[indiceCategoria])
             message={}
+            message['idImagen']=params['idImagen']
             message['prediccion'] = categorias[indiceCategoria]
-        
+            message['probabilidades'] = prediccione.tolist()    
             # send the message back
             self._set_headers()
             self.wfile.write(json.dumps(message, ensure_ascii=False).encode('utf8'))

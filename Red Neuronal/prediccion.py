@@ -28,7 +28,7 @@ class prediccion():
         claseMayorValor=np.argmax(predicciones,axis=1)
         print(predicciones)
         print (claseMayorValor)
-        return claseMayorValor[0]
+        return claseMayorValor[0],predicciones[0]
 
 
 

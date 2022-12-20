@@ -44,8 +44,8 @@ const Settings = () => {
       <hr />
       <Message
         type="info"
-        title="Titulo"
-        content="Acá pordrás insertar la URL a donde quieres que se hagan las peticiones para predecir el tipo de pájaro."
+        title="Información"
+        content="Acá pordrás insertar la URL a donde quieres que se hagan las peticiones para predecir el tipo de deporte."
       />
     </>
   );
